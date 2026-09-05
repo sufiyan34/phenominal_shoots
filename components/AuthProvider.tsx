@@ -37,9 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const snap = await getDoc(doc(db, "users", next.uid));
         const role = snap.exists() ? snap.data().role : null;
         setIsAdmin(role === "admin" || role === "superAdmin");
-      } catch {
-        setIsAdmin(false);
-      } finally {
+      } catch (error) {
+  console.error("ADMIN ROLE CHECK FAILED:", error);
+  setIsAdmin(false);
+} finally {
         setLoading(false);
       }
     });
