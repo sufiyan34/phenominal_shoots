@@ -1,0 +1,2 @@
+import CmsManager from "@/components/admin/CmsManager";
+export default function Page(){return <CmsManager config={{collection:"packages",title:"Packages",singular:"Package",fields:[{key:"name",label:"Name",required:true},{key:"slug",label:"Slug"},{key:"priceLabel",label:"Price / starting from"},{key:"description",label:"Description",type:"textarea"},{key:"features",label:"Features (one per line)",type:"textarea"},{key:"status",label:"Status",type:"select",options:["draft","published"]}]}}/>}

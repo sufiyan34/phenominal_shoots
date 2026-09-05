@@ -1,0 +1,2 @@
+import AskForm from "@/components/AskForm";
+export default function AskPage(){return <main style={{paddingTop:140}}><section className="section"><div className="shell"><div className="eyebrow">Questions</div><h1 className="display" style={{fontSize:"clamp(58px,8vw,110px)",lineHeight:.85}}>Ask me anything.</h1><p style={{maxWidth:700,color:"var(--muted)",fontSize:18,lineHeight:1.8}}>Not ready to book? Send a question first. The studio will respond from the admin inbox.</p><AskForm/></div></section></main>}

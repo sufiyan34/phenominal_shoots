@@ -1,0 +1,2 @@
+import AvailabilityCalendar from "@/components/admin/AvailabilityCalendar";
+export default function Page(){return <main><div style={{background:"#f3f0e8",padding:25}}><AvailabilityCalendar/></div></main>}

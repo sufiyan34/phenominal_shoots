@@ -1,0 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
+export default function AuditPage(){const[items,setItems]=useState<Record<string,unknown>[]>([]);const[error,setError]=useState("");useEffect(()=>{getDocs(query(collection(db,"audit_logs"),orderBy("createdAt","desc"),limit(200))).then(s=>setItems(s.docs.map(d=>({id:d.id,...d.data()})))).catch(e=>setError(e instanceof Error?e.message:"Could not load audit logs"))},[]);return <main><div className="eyebrow">Security · History</div><h1 className="display" style={{fontSize:56,margin:"8px 0 30px"}}>Audit log</h1>{error&&<div>{error}</div>}<div style={{background:"#f3f0e8",padding:25}}>{items.map(x=><div key={String(x.id)} style={{display:"grid",gridTemplateColumns:"170px 160px 1fr",gap:15,padding:"14px 0",borderBottom:"1px solid rgba(23,23,20,.08)",fontSize:13}}><span>{String(x.action)}</span><span>{String(x.collection)}</span><span>{String(x.detail||x.recordId||"")}</span></div>)}</div></main>}

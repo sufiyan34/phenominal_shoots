@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["admin", "superAdmin"];
+    }
+
+    match /users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
+    match /projects/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /packages/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /stories/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /promotions/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /services/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /testimonials/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+    match /faqs/{id} { allow read: if isAdmin() || resource.data.status == "published"; allow create, update, delete: if isAdmin(); }
+
+    match /site_settings/{id} { allow read: if true; allow create, update, delete: if isAdmin(); }
+
+    match /bookings/{id} {
+      allow create: if request.resource.data.status == "NEW" && request.resource.data.keys().hasAll(["publicReference","publicToken","clientName","email","phone","eventType","eventDate","location","status"]);
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        resource.data.publicToken == request.resource.data.publicToken &&
+        request.resource.data.status == "PAYMENT_PROOF_SUBMITTED" &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["publicToken","paymentProofId","status","lastUpdatedAt"])
+      );
+    }
+
+    match /booking_public/{token} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(["publicReference","publicToken","bookingId","clientName","eventType","eventDate","location","status"]);
+      allow update: if isAdmin() || (
+        token == request.resource.data.publicToken &&
+        request.resource.data.status == "PAYMENT_PROOF_SUBMITTED" &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","paymentProofId","updatedAt"])
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /contact_messages/{id} {
+      allow create: if request.resource.data.keys().hasAll(["name","email","message","status","createdAt"]);
+      allow read, update, delete: if isAdmin();
+    }
+    match /ask_questions/{id} {
+      allow create: if request.resource.data.keys().hasAll(["name","email","question","status","createdAt"]);
+      allow read, update, delete: if isAdmin();
+    }
+    match /payment_proofs/{id} {
+      allow create: if request.resource.data.keys().hasAll(["bookingId","publicReference","publicToken","assetUrl","status","uploadedAt"])
+        && request.resource.data.status == "SUBMITTED"
+        && get(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.publicToken == request.resource.data.publicToken;
+      allow read, update, delete: if isAdmin();
+    }
+    match /availability/{id} { allow read: if true; allow create, update, delete: if isAdmin(); }
+    match /media_assets/{id} { allow read: if isAdmin(); allow create, update, delete: if isAdmin(); }
+    match /audit_logs/{id} { allow read: if isAdmin(); allow create: if signedIn(); }
+  }
+}

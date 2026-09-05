@@ -1,0 +1,2 @@
+import CmsManager from "@/components/admin/CmsManager";
+export default function Page(){return <CmsManager config={{collection:"testimonials",title:"Testimonials",fields:[{key:"clientName",label:"Client name"},{key:"quote",label:"Quote",type:"textarea"},{key:"role",label:"Role / event"},{key:"image",label:"Client image",type:"media"},{key:"status",label:"Status",type:"select",options:["draft","published"]},{key:"featured",label:"Featured",type:"checkbox"}]}}/>}

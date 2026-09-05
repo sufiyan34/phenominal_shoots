@@ -1,0 +1,2 @@
+import TestimonialPublicList from "@/components/TestimonialPublicList";
+export default function TestimonialsPage(){return <main style={{paddingTop:140}}><section className="section"><div className="shell"><div className="eyebrow">Client words</div><h1 className="display" style={{fontSize:"clamp(60px,9vw,120px)",lineHeight:.85,margin:"18px 0 55px"}}>Words from our clients.</h1><TestimonialPublicList/></div></section></main>}

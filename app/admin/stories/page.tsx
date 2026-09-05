@@ -1,0 +1,2 @@
+import CmsManager from "@/components/admin/CmsManager";
+export default function Page(){return <CmsManager config={{collection:"stories",title:"Stories",fields:[{key:"title",label:"Title"},{key:"slug",label:"Slug"},{key:"excerpt",label:"Excerpt",type:"textarea"},{key:"body",label:"Body",type:"textarea"},{key:"coverImage",label:"Cover image",type:"media"},{key:"status",label:"Status",type:"select",options:["draft","published"]},{key:"featured",label:"Featured",type:"checkbox"}]}}/>}

@@ -1,0 +1,5 @@
+"use client";
+import {useState} from "react";
+import {addDoc,collection,serverTimestamp} from "firebase/firestore";
+import {db} from "@/lib/firebase/client";
+export default function AskForm(){const [busy,setBusy]=useState(false),[msg,setMsg]=useState("");async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setMsg("");const f=new FormData(e.currentTarget);try{await addDoc(collection(db,"ask_questions"),{name:String(f.get("name")),email:String(f.get("email")),question:String(f.get("question")),status:"unread",createdAt:serverTimestamp()});e.currentTarget.reset();setMsg("Question sent. We’ll reply as soon as we can.")}catch(e){setMsg(e instanceof Error?e.message:"Could not send question.")}finally{setBusy(false)}}return <form onSubmit={submit} style={{display:"grid",gap:12,marginTop:30,maxWidth:700}}><input name="name" placeholder="Name" required/><input name="email" type="email" placeholder="Email" required/><textarea name="question" placeholder="Your question..." required/><button className="btn btn-dark" disabled={busy}>{busy?"Sending…":"Ask the studio"}</button>{msg&&<p style={{color:"var(--muted)"}}>{msg}</p>}</form>}

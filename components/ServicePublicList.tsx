@@ -1,0 +1,3 @@
+"use client";
+import {useEffect,useState} from "react";import {listPublished} from "@/lib/publicData";import type {Service} from "@/lib/types";
+export default function ServicePublicList(){const [items,setItems]=useState<Service[]>([]);useEffect(()=>{void listPublished<Service>("services").then(setItems).catch(()=>{})},[]);return <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>{items.map((s,i)=><article key={s.id} style={{background:"#e5e0d6",padding:28,minHeight:220}}><div className="eyebrow">0{i+1}</div><h3 className="display" style={{fontSize:36,margin:"14px 0"}}>{s.title}</h3><p style={{lineHeight:1.75,color:"var(--muted)"}}>{s.description}</p></article>)}</div>}
