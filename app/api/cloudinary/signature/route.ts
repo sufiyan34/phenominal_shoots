@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 
-function adminAuth() {
+function adminApp() {
   if (!getApps().length) {
     initializeApp({
       credential: cert({
@@ -13,7 +14,6 @@ function adminAuth() {
       }),
     });
   }
-  return getAuth();
 }
 
 export async function POST(request: Request) {
@@ -22,8 +22,17 @@ export async function POST(request: Request) {
     const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
     if (!token) return NextResponse.json({error:"Unauthorized"},{status:401});
 
-    const decoded = await adminAuth().verifyIdToken(token);
-    if (!decoded.admin) return NextResponse.json({error:"Forbidden"},{status:403});
+    adminApp();
+    const decoded = await getAuth().verifyIdToken(token);
+
+    // The rest of the app decides "is this user an admin" via the
+    // users/{uid}.role Firestore document (see AuthProvider + firestore.rules)
+    // — this used to check a Firebase Auth custom claim instead, which
+    // nothing in the project ever set, so this endpoint 403'd for every
+    // real admin. Checking the same Firestore field keeps one source of truth.
+    const userDoc = await getFirestore().collection("users").doc(decoded.uid).get();
+    const role = userDoc.exists ? userDoc.data()?.role : null;
+    if (role !== "admin" && role !== "superAdmin") return NextResponse.json({error:"Forbidden"},{status:403});
 
     const body = await request.json() as { folder?: string; timestamp?: number };
     const timestamp = body.timestamp ?? Math.floor(Date.now() / 1000);

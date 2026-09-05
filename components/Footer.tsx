@@ -1,6 +1,21 @@
+"use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getSiteSettings } from "@/lib/publicData";
+import type { SiteSettings } from "@/lib/types";
 
 export default function Footer() {
+  const [settings, setSettings] = useState<SiteSettings>({});
+  useEffect(() => { void getSiteSettings().then(setSettings); }, []);
+  // Only render a social link once the studio has actually set one in
+  // Website Content — previously these were hardcoded "#" placeholders
+  // regardless of what was saved there.
+  const socials = [
+    settings.instagram ? { label: "Instagram", href: settings.instagram } : null,
+    settings.tiktok ? { label: "TikTok", href: settings.tiktok } : null,
+    settings.youtube ? { label: "YouTube", href: settings.youtube } : null,
+  ].filter((x): x is { label: string; href: string } => x !== null);
+
   return (
     <footer style={{background:"#211d18",color:"#f3f0e8",padding:"70px 0 24px"}}>
       <div className="shell">
@@ -23,9 +38,9 @@ export default function Footer() {
             <div className="eyebrow" style={{color:"#bdb5a8"}}>Connect</div>
             <div style={{display:"grid",gap:10,marginTop:18}}>
               <Link href="/contact">Contact</Link>
-              <a href="#">Instagram</a>
-              <a href="#">TikTok</a>
-              <a href="#">YouTube</a>
+              {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
+              {settings.contactPhone && <a href={`tel:${settings.contactPhone.replace(/\s+/g,"")}`}>{settings.contactPhone}</a>}
+              {socials.map(s => <a key={s.label} href={s.href} target="_blank" rel="noreferrer">{s.label}</a>)}
             </div>
           </div>
         </div>

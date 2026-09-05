@@ -1,6 +1,6 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where, type Unsubscribe } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import type { AskQuestion, Availability, Booking, BookingStatus, ContactMessage, Faq, PackageModel, PaymentProof, Project, Promotion, Service, Story, Testimonial } from "@/lib/types";
+import type { AskQuestion, Availability, Booking, BookingPublic, BookingStatus, ContactMessage, Faq, PackageModel, PaymentProof, Project, Promotion, Service, Story, Testimonial } from "@/lib/types";
 
 const stamp = { updatedAt: serverTimestamp() };
 export const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -11,7 +11,7 @@ export async function createAuditLog(action: string, collectionName: string, rec
   } catch { /* audit logging must never break the primary action */ }
 }
 
-export async function createBooking(input: Omit<Booking, "id" | "status" | "publicReference">) {
+export async function createBooking(input: Omit<Booking, "id" | "status" | "publicReference" | "publicToken">) {
   const publicReference = `PS-${Date.now().toString(36).toUpperCase()}`;
   const publicToken = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
   const clean = {
@@ -49,7 +49,18 @@ export async function getBookingByReference(reference: string) {
 
 export async function getPublicBooking(token: string) {
   const snap = await getDoc(doc(db, "booking_public", token));
-  return snap.exists() ? snap.data() as Record<string, unknown> : null;
+  return snap.exists() ? (snap.data() as BookingPublic) : null;
+}
+
+// Live version of getPublicBooking: pushes status changes (advance requested,
+// payment verified, confirmed, ...) to the client without a manual refresh.
+// Returns the Firestore unsubscribe function — callers must call it on cleanup.
+export function subscribePublicBooking(token: string, onChange: (booking: BookingPublic | null) => void, onError?: (error: Error) => void): Unsubscribe {
+  return onSnapshot(
+    doc(db, "booking_public", token),
+    (snap) => onChange(snap.exists() ? (snap.data() as BookingPublic) : null),
+    (err) => onError?.(err),
+  );
 }
 
 export async function listBookings() {
@@ -65,7 +76,7 @@ export async function updateBookingStatus(id: string, status: BookingStatus, pat
   }
   const booking = await getDoc(doc(db, "bookings", id));
   if (booking.exists()) {
-    const data = booking.data() as Partial<Booking> & { publicToken?: string; publicReference?: string };
+    const data = booking.data() as Booking;
     if (data.publicToken) {
       await setDoc(doc(db, "booking_public", data.publicToken), {
         publicReference: data.publicReference ?? "",

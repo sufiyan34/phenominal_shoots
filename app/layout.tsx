@@ -9,5 +9,11 @@ export const metadata = {
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
-  return <AuthProvider><Header/>{children}<Footer/></AuthProvider>;
+  return (
+    <html lang="en" data-scroll-behavior="smooth">
+      <body>
+        <AuthProvider><Header/>{children}<Footer/></AuthProvider>
+      </body>
+    </html>
+  );
 }
